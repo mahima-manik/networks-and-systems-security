@@ -2,6 +2,15 @@
 #include <bitset>
 #include <iostream>
 using namespace std;
+
+int drop_table[7][8] = {{57, 49, 41, 33, 25, 17, 9, 1},
+                      {58, 50, 42, 34, 26, 18, 10, 2},
+                      {59, 51, 43, 35, 27, 19, 11, 3},
+                      {60, 52, 44, 36, 63, 55, 47, 39},
+                      {31, 23, 15, 7, 62, 54, 46, 38},
+                      {30, 22, 14, 6, 61, 53, 45, 37},
+                      {29, 21, 13, 5, 28, 20, 12, 4}};
+
 int ex_p_box[8][6]={{32, 1, 2, 3, 4, 5},
                     {4, 5, 6, 7, 8 , 9},
                     {8, 9, 10, 11, 12, 13},
@@ -50,6 +59,15 @@ int sbox[8][4][16]={{{14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7},
                   {7, 11, 4, 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8},
                   {2, 1, 14, 7, 4, 10, 8, 13, 15, 12, 9, 0, 3, 5, 6, 11}}};
 
+int* permute_key(int* pk) {
+  int* per_pk = new int[56];
+  for(int i=0; i<=6; i++) {
+    for (int j=0; j<=7; j++)  {
+      per_key[i] = pk[drop_table[i][j];
+    }
+  }
+}
+
 int* expansion_p_box(int* plaintext)
 {
     int* pt = new int[48];
@@ -67,7 +85,7 @@ int* xor_op(int* a, int* b, int n)
       p[i]=a[i] xor b[i];
     return p;
 }
-int* s_box(int *plaintext)
+/*int* s_box(int *plaintext)
 {
     int * p=new int[32];
     for(int i=0;i<8;i++)
@@ -78,6 +96,7 @@ int* s_box(int *plaintext)
         }
     }
 }
+
 int* func(int* plaintext, int* key)
 {
     plaintext=expansion_p_box(plaintext);
@@ -103,10 +122,10 @@ int* round(int* plaintext, int* key)
     for(int i=0;i<32;i++)
         p[i+32]=l[i];
     return p;
+}*/
 
-}
-
-int* convert2bit(string myString)     //Takes any string and convert it into bits form into an array of size 64.
+//Takes any string and convert it into bits form into an array of size 64.
+int* convert2bit(string myString)     
 {
     int* plaintext = new int[64];
     int j=0;
@@ -123,7 +142,8 @@ int* convert2bit(string myString)     //Takes any string and convert it into bit
     return plaintext;
 }
 
-string checkKeySize(string key) {     //Checks whether the key entered by the user is of 64bits or not.
+//Checks whether the key entered by the user is of 64bits or not.
+string checkKeySize(string key) {     
   string res="";
   if (key.length() < 8) {
     return "NOT SUFFICIENTLY LONG\n";
@@ -136,7 +156,8 @@ string checkKeySize(string key) {     //Checks whether the key entered by the us
   }
 }
 
-int* paritydrop(int* cipherkey)  {    //converts the 64 bits to 56 bits by dropping the parity bits and returning the result into the array pk.
+//converts the 64 bits to 56 bits by dropping the parity bits and returning the result into the array pk.
+int* paritydrop(int* cipherkey)  {    
   int* pk = new int[56];
   int c = 0;
   for (int i=0; i<64; i++)  {
@@ -178,6 +199,6 @@ int main()  {
     cout<<pk[i];
   cout<<endl;;
   //pk is the final 56 bits private key.
-
+  int* permuted_pk = permute_key(pk);
   return 0;
 }
