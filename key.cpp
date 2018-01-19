@@ -4,7 +4,7 @@
 using namespace std;
 
 
-int* convert2bit(string myString)
+int* convert2bit(string myString)     //Takes any string and convert it into bits form into an array of size 64.
 {
     int* plaintext = new int[64];
     int j=0;
@@ -21,7 +21,7 @@ int* convert2bit(string myString)
     return plaintext;
 }
 
-string checkKeySize(string key) {
+string checkKeySize(string key) {     //Checks whether the key entered by the user is of 64bits or not. 
   string res="";
   if (key.length() < 8) {
     return "NOT SUFFICIENTLY LONG\n";
@@ -34,6 +34,17 @@ string checkKeySize(string key) {
   }
 }
 
+int* paritydrop(int* plaintext)  {    //converts the 64 bits to 56 bits by dropping the parity bits and returning the result into the array pk.
+  int* pk = new int[56];
+  int c = 0;
+  for (int i=0; i<64; i++)  {
+    if(i==0 || i%8!=0)  {  
+      pk[c] = plaintext[i];
+      c++;
+    }
+  }
+  return pk;
+}
 
 int main()  {
   string cipherkey;
@@ -41,8 +52,17 @@ int main()  {
   cin>>cipherkey;
   cipherkey = checkKeySize(cipherkey);
   cout<<endl<<cipherkey<<endl;
+  
   int* plaintext = convert2bit(cipherkey);
-  for(int i=0; i<64;i++)
+  //prints the key in the bit string format.
+  for(int i=0; i<64;i++)  
     cout<<plaintext[i];
+  cout<<endl;
+  
+  int* pk = new int[56];
+  pk = paritydrop(plaintext);
+  for(int i=0; i<56;i++)
+    cout<<pk[i];
+  //pk is the final 56 bits private key.
   return 0;
 }
