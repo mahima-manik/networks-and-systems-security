@@ -60,7 +60,6 @@ int st_p_box[4][8]={{16, 7, 20, 21, 29, 12, 28, 17},
 int* expansion_p_box(int* plaintext)
 {
     int* pt = new int[48];
-    cout<<"In ex p box"<<endl;
     for(int i=0;i<8;i++)
         for(int j=0;j<6;j++)
             pt[i*6+j]=plaintext[ex_p_box[i][j]-1];
@@ -69,7 +68,6 @@ int* expansion_p_box(int* plaintext)
 //xor operation of n bits
 int* xor_op(int* a, int* b, int n)
 {
-    cout<<"in xor"<<endl;
     int *p=new int[n];
     for(int i=0;i<n;i++)
       p[i]=a[i] xor b[i];
@@ -113,6 +111,7 @@ int* s_box(int *plaintext)
     }
     return p;
 }
+//applying straight p box
 int* straight_p_box(int * plaintext)
 {
     int* pt = new int[32];
@@ -121,7 +120,7 @@ int* straight_p_box(int * plaintext)
             pt[i*8+j]=plaintext[st_p_box[i][j]-1];
     return pt;
 }
-//intial function
+//initial function
 int* func(int* pt, int* key)
 {
     int *plaintext=new int[48];
@@ -146,28 +145,16 @@ int* func(int* pt, int* key)
     return plain;
 }
 //each round
-int* round(int* plaintext, int* key)
+int* round(int* l, int *r, int* key)
 {
-    int* l = new int[32];
-    int* r = new int[32];
-    int* p = new int[64];
-    for(int i=0;i<32;i++)
-        l[i]=plaintext[i];
-    for(int i=0;i<32;i++)
-    {
-        r[i]=plaintext[i+32];
-        p[i]=plaintext[i+32];
-    }
-    cout<<"In round"<<endl;
     r=func(r, key);
     cout<<"func applied"<<endl;
     l=xor_op(l, r, 32);
-    for(int i=0;i<32;i++)
-        p[i+32]=l[i];
-    delete[] l;
-    delete[] r;
-    return p;
-
+    cout<<"xor applied"<<endl;
+        for(int i=0;i<32;i++)
+            cout<<l[i];
+        cout<<endl;
+    return l;
 }
 
 int* convert2bit(string myString)     //Takes any string and convert it into bits form into an array of size 64.
@@ -211,7 +198,64 @@ int* paritydrop(int* cipherkey)  {    //converts the 64 bits to 56 bits by dropp
   }
   return pk;
 }
+int * encrypt(int* plaintext, int *key)
+{
+//    plaintext=initial_permutation(plaintext);
+    for(int j=0;j<16;j++)
+    {
+        int* l = new int[32];
+        int* r = new int[32];
+        int* p = new int[64];
+        for(int i=0;i<32;i++)
+            l[i]=plaintext[i];
+        for(int i=0;i<32;i++)
+        {
+            r[i]=plaintext[i+32];
+            p[i]=plaintext[i+32];
+        }
+        cout<<endl;
+        l=round(l, r, key);
+        for(int i=0;i<32;i++)
+            p[i+32]=l[i];
+        plaintext=p;
+        cout<<"ciphertext of round "<<j<<endl;
+        for(int i=0;i<64;i++)
+            cout<<plaintext[i];
+        cout<<endl;
+        delete[] l;
+        delete[] r;
+        delete[] p;
+    }
+//    plaintext=final_permutation(plaintext);
+    return plaintext;
+}
+int * decrypt(int* plaintext, int *key)
+{
+//    plaintext=initial_permutation(plaintext);
+    for(int j=0;j<16;j++)
+    {
+        int* l = new int[32];
+        int* r = new int[32];
+        int* p = new int[64];
+        for(int i=0;i<32;i++)
+        {
+            l[i]=plaintext[i];
+            p[i+32]=plaintext[i];
+        }
+        for(int i=0;i<32;i++)
+            r[i]=plaintext[i+32];
+        r=round(r, l, key);
+        for(int i=0;i<32;i++)
+            p[i]=r[i];
+        plaintext=p;
+        delete[] l;
+        delete[] r;
+        delete[] p;
+    }
+//    plaintext=final_permutation(plaintext);
+    return plaintext;
 
+}
 int main()  {
   string cipherkey, plaintext;
   cout<<"Enter 64 bits/8 Bytes plaintext ";
@@ -243,8 +287,8 @@ int main()  {
   cout<<endl;;
   //pk is the final 56 bits private key.
 
+//temporary
   int *k = new int[48];
-  cout<<"48 bit key: \n";
   for(int i=0; i<48; i++)
     k[i]=pk[i];
   cout<<"48 bit key: \n";
@@ -253,17 +297,17 @@ int main()  {
   cout<<endl;;
 
   int *ct=new int [64];
-  ct=round(pt, k);
+  ct=encrypt(pt, k);
   cout<<"Ciphertext after 1 round:"<<endl;
   for(int i=0; i<64;i++)
     cout<<ct[i];
   cout<<endl;
-  /*int *d=new int [64];
-  d=round(ct, pk);
+  int *d=new int [64];
+  d=decrypt(ct, pk);
   cout<<"decrypt after 1 round:"<<endl;
   for(int i=0; i<64;i++)
     cout<<d[i];
-  cout<<endl;*/
+  cout<<endl;
 
   return 0;
 }
