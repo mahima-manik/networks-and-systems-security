@@ -13,27 +13,30 @@ int drop_table[7][8] = {{57, 49, 41, 33, 25, 17, 9, 1},
 
 int* permute_key(int* pk) {
   int* per_pk = new int[64];
-  per_pk=pk;
+  per_pk = pk;
+  int count = 0;
   for(int i=0; i<=6; i++) {
     for (int j=0; j<=7; j++)  {
-      per_pk[((i+1)*(j+1)) - 1] = pk[drop_table[i][j]-1];
+      if (count%8 != 0 || count==0)
+        per_pk[count] = pk[(drop_table[i][j])-1];
+      count++;
     }
   }
-  
   return per_pk;
 }
 
 int* depermute_key(int* per_pk) {
-  int* pk1 = new int[56];
+  int* pk = new int[64];
+  int count = 0;
+  pk = per_pk;
   for(int i=0; i<=6; i++) {
     for (int j=0; j<=7; j++)  {
-      pk1[drop_table[i][j]-1] = per_pk[((i+1)*(j+1))-1];
+      if (count%8 != 0 || count ==0)
+        pk[(drop_table[i][j])-1] = per_pk[count];
+      count++;
     }
   }
-  for(int i=0; i<56;i++)
-    cout<<pk1[i];
-  cout<<endl;;
-  return pk1;
+  return pk;
 }
 
 int* convert2bit(string myString)     
@@ -81,48 +84,40 @@ int* paritydrop(int* cipherkey)  {
 }
 
 int main()  {
-  string cipherkey, plaintext;
-  //cout<<"Enter 64 bits/8 Bytes plaintext ";
-  //cin>>plaintext;
+  string cipherkey;
   cout<<"Enter 64 bits/8 Bytes cipher key ";
   cin>>cipherkey;
   cipherkey = checkKeySize(cipherkey);
-  //plaintext = checkKeySize(plaintext);
   cout<<endl<<cipherkey<<endl;
-  //cout<<endl<<plaintext<<endl;
 
   int* ck = convert2bit(cipherkey);
-  //int* pt = convert2bit(plaintext);
 
   cout<<"prints the key in the bit string format."<<endl;
-  for(int i=0; i<64;i++)
+  for(int i=0; i<64; i++)
     cout<<ck[i];
   cout<<endl;
 
-  /*cout<<"prints the plaintext in the bit string format."<<endl;
-  for(int i=0; i<64;i++)
-    cout<<pt[i];
-  cout<<endl;*/
-
-  cout<<"Permuted key: "<<endl;
+  //cout<<"Permuted key: "<<endl;
   int* permuted_pk = permute_key(ck);
-  for(int i=0; i<64;i++)
+ 
+
+  int* pk = depermute_key(permuted_pk);
+  for(int i=0; i<64; i++)
+    cout<<pk[i];
+  cout<<endl;;
+ for(int i=0; i<64; i++)
     cout<<permuted_pk[i];
   cout<<endl;;
-
-  cout<<"Parity dropped: "<<endl;
+  /*cout<<"Parity dropped: "<<endl;
   int* pk = new int[56];
   pk = paritydrop(permuted_pk);
   for(int i=0; i<56;i++)
     cout<<pk[i];
   cout<<endl;
-  
+  */
   //pk is the final 56 bits private key.
   
-  cout<<"Depermuted: "<<endl;
-  pk = depermute_key(pk);
-  for(int i=0; i<56;i++)
-    cout<<pk[i];
-  cout<<endl;;
+  //cout<<"Depermuted: "<<endl;
+
   return 0;
 }
