@@ -2,15 +2,7 @@
 #include <bitset>
 #include <iostream>
 using namespace std;
-
-int drop_table[7][8] = {{57, 49, 41, 33, 25, 17, 9, 1},
-                      {58, 50, 42, 34, 26, 18, 10, 2},
-                      {59, 51, 43, 35, 27, 19, 11, 3},
-                      {60, 52, 44, 36, 63, 55, 47, 39},
-                      {31, 23, 15, 7, 62, 54, 46, 38},
-                      {30, 22, 14, 6, 61, 53, 45, 37},
-                      {29, 21, 13, 5, 28, 20, 12, 4}};
-
+//expansion p-box
 int ex_p_box[8][6]={{32, 1, 2, 3, 4, 5},
                     {4, 5, 6, 7, 8 , 9},
                     {8, 9, 10, 11, 12, 13},
@@ -19,6 +11,7 @@ int ex_p_box[8][6]={{32, 1, 2, 3, 4, 5},
                     {20, 21, 22, 23, 24, 25},
                     {24, 25, 26, 27, 28, 29},
                     {28, 29, 30, 31, 32, 1}};
+//eight s boxes
 int sbox[8][4][16]={{{14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7},
                   {0, 15, 7, 4, 14, 2, 13, 1, 10, 6, 12, 11, 9, 5, 3, 8},
                   {4, 1, 14, 8, 13, 6, 2, 11, 15, 12, 9, 7, 3, 10, 5, 0},
@@ -58,53 +51,101 @@ int sbox[8][4][16]={{{14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7},
                   {1, 15, 13, 8, 10, 3, 7, 4, 12, 5, 6, 11, 0, 14, 9, 2},
                   {7, 11, 4, 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8},
                   {2, 1, 14, 7, 4, 10, 8, 13, 15, 12, 9, 0, 3, 5, 6, 11}}};
-
-int* permute_key(int* pk) {
-  int* per_pk = new int[56];
-  for(int i=0; i<=6; i++) {
-    for (int j=0; j<=7; j++)  {
-      per_key[i] = pk[drop_table[i][j];
-    }
-  }
-}
-
+//straight p box
+int st_p_box[4][8]={{16, 7, 20, 21, 29, 12, 28, 17},
+                    {1, 15, 23, 26, 5, 18, 31, 10},
+                    {2, 8, 24, 14, 32, 27, 3, 9},
+                    {19, 13, 30, 6, 22, 11, 4, 25}};
+//applying expansion p box
 int* expansion_p_box(int* plaintext)
 {
     int* pt = new int[48];
-    int in;
+    cout<<"In ex p box"<<endl;
     for(int i=0;i<8;i++)
         for(int j=0;j<6;j++)
-            {   in =ex_p_box[i][j]-1;
-                pt[i*4+j]=plaintext[in];}
+            pt[i*6+j]=plaintext[ex_p_box[i][j]-1];
     return pt;
 }
+//xor operation of n bits
 int* xor_op(int* a, int* b, int n)
 {
+    cout<<"in xor"<<endl;
     int *p=new int[n];
     for(int i=0;i<n;i++)
       p[i]=a[i] xor b[i];
     return p;
 }
-/*int* s_box(int *plaintext)
+//convert 2 bit binary to decimal
+int convert2dec(int a, int b)
+{
+    int r=a*2+b;
+    return r;
+}
+//convert 4 bit binary to decimal
+int convert2dec(int a, int b, int c, int d)
+{
+    int r=a*8+b*4+2*c+d;
+    return r;
+}
+//convert decimal to n bit binary
+int* convert2bin(int a, int n)
+{
+    int* p=new int[n];
+    for(int i=n-1;i>=0;i--)
+    {
+        p[i]=a%2;
+        a=a/2;
+    }
+    return p;
+}
+//apply s box
+int* s_box(int *plaintext)
 {
     int * p=new int[32];
     for(int i=0;i<8;i++)
     {
-        for(int j=0;j<6;j++)
-        {
-
-        }
+        int* a=new int[4];
+        int row=convert2dec(plaintext[i*6], plaintext[i*6+5]);
+        int column=convert2dec(plaintext[i*6+1], plaintext[i*6+2], plaintext[i*6+3], plaintext[i*6+4]);
+        a=convert2bin(sbox[i][row][column], 4);
+        for(int j=0;j<4;j++)
+            p[i*4+j]=a[j];
     }
+    return p;
 }
-
-int* func(int* plaintext, int* key)
+int* straight_p_box(int * plaintext)
 {
-    plaintext=expansion_p_box(plaintext);
-    plaintext=xor_op(plaintext, key, 48);
-    plaintext=s_box(plaintext);
-//    plaintext=straight_p_box(plaintext);
-    return plaintext;
+    int* pt = new int[32];
+    for(int i=0;i<4;i++)
+        for(int j=0;j<8;j++)
+            pt[i*8+j]=plaintext[st_p_box[i][j]-1];
+    return pt;
 }
+//intial function
+int* func(int* pt, int* key)
+{
+    int *plaintext=new int[48];
+    plaintext=expansion_p_box(pt);
+    cout<<"Expansion p box applied"<<endl;
+    for(int i=0;i<48;i++)
+        cout<<plaintext[i];
+    plaintext=xor_op(plaintext, key, 48);
+    cout<<"xor applied"<<endl;
+    for(int i=0;i<48;i++)
+        cout<<plaintext[i];
+    int * plain=new int[32];
+    plain=s_box(plaintext);
+    cout<<"s box"<<endl;
+    for(int i=0;i<32;i++)
+        cout<<plain[i];
+    plain=straight_p_box(plain);
+    cout<<"straight p box"<<endl;
+    for(int i=0;i<32;i++)
+        cout<<plain[i];
+    delete[] plaintext;
+    return plain;
+}
+//each round
 int* round(int* plaintext, int* key)
 {
     int* l = new int[32];
@@ -117,15 +158,19 @@ int* round(int* plaintext, int* key)
         r[i]=plaintext[i+32];
         p[i]=plaintext[i+32];
     }
+    cout<<"In round"<<endl;
     r=func(r, key);
+    cout<<"func applied"<<endl;
     l=xor_op(l, r, 32);
     for(int i=0;i<32;i++)
         p[i+32]=l[i];
+    delete[] l;
+    delete[] r;
     return p;
-}*/
 
-//Takes any string and convert it into bits form into an array of size 64.
-int* convert2bit(string myString)     
+}
+
+int* convert2bit(string myString)     //Takes any string and convert it into bits form into an array of size 64.
 {
     int* plaintext = new int[64];
     int j=0;
@@ -142,8 +187,7 @@ int* convert2bit(string myString)
     return plaintext;
 }
 
-//Checks whether the key entered by the user is of 64bits or not.
-string checkKeySize(string key) {     
+string checkKeySize(string key) {     //Checks whether the key entered by the user is of 64bits or not.
   string res="";
   if (key.length() < 8) {
     return "NOT SUFFICIENTLY LONG\n";
@@ -156,8 +200,7 @@ string checkKeySize(string key) {
   }
 }
 
-//converts the 64 bits to 56 bits by dropping the parity bits and returning the result into the array pk.
-int* paritydrop(int* cipherkey)  {    
+int* paritydrop(int* cipherkey)  {    //converts the 64 bits to 56 bits by dropping the parity bits and returning the result into the array pk.
   int* pk = new int[56];
   int c = 0;
   for (int i=0; i<64; i++)  {
@@ -199,6 +242,28 @@ int main()  {
     cout<<pk[i];
   cout<<endl;;
   //pk is the final 56 bits private key.
-  int* permuted_pk = permute_key(pk);
+
+  int *k = new int[48];
+  cout<<"48 bit key: \n";
+  for(int i=0; i<48; i++)
+    k[i]=pk[i];
+  cout<<"48 bit key: \n";
+  for(int i=0; i<48;i++)
+    cout<<k[i];
+  cout<<endl;;
+
+  int *ct=new int [64];
+  ct=round(pt, k);
+  cout<<"Ciphertext after 1 round:"<<endl;
+  for(int i=0; i<64;i++)
+    cout<<ct[i];
+  cout<<endl;
+  /*int *d=new int [64];
+  d=round(ct, pk);
+  cout<<"decrypt after 1 round:"<<endl;
+  for(int i=0; i<64;i++)
+    cout<<d[i];
+  cout<<endl;*/
+
   return 0;
 }
