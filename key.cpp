@@ -31,16 +31,12 @@ int* compress_permute(int n, int n1, int* pk)  {
 }
 
 int* permute_key(int* pk) {
-  int* per_pk = new int[64];
-  for(int i=0; i<7; i++) {
-    for (int j=0; j<8; j++)  {
-      int pos = (8*i+j);
-      if((pos+1)%8 != 0)
-        per_pk[pos] = pk[drop_table[i][j]-1];
-      else
-        per_pk[pos] = pk[pos];
-      pos = 0;
-    }
+  int* per_pk = new int[56];
+  int k=0;
+  
+  for (int k=0; k<56; ) {
+    per_pk[k] = pk[drop_table[k/8][k%8]-1];
+    k++;
   }
   return per_pk;
 }
@@ -76,18 +72,6 @@ string checkKeySize(string key) {
   }
 }
 
-//converts the 64 bits to 56 bits by dropping the parity bits and returning the result into the array pk.
-int* paritydrop(int* cipherkey)  {    
-  int* pk = new int[56];
-  int c = 0;
-  for (int i=0; i<64; i++)  {
-    if(i==0 || i%8!=0)  {
-      pk[c] = cipherkey[i];
-      c++;
-    }
-  }
-  return pk;
-}
 
 int* shift_by_one(int* pk, int start, int end)  {
   int temp = pk[start];
@@ -120,12 +104,12 @@ int main()  {
   cout<<endl;
   int* per_pk = permute_key(ck);
   cout<<"Parity dropped: "<<endl;
-  int* pk = paritydrop(per_pk);
-  for(int i=0; i<56;i++)
-    cout<<pk[i];
+  cout<<"\nPermuted:\n";
+  for(int i=0; i<56; i++)
+    cout<<per_pk[i];
   cout<<endl;
   int* per_pk1 = new int[48];
-  per_pk1 = compress_permute(56, 48, pk);
+  per_pk1 = compress_permute(56, 48, per_pk);
   for(int i=0; i<48; i++)
     cout<<per_pk1[i];
   cout<<endl;
