@@ -96,10 +96,10 @@ int* expansion_p_box(int* plaintext)
     for(int i=0;i<8;i++)
         for(int j=0;j<6;j++)
             pt[i*6+j]=plaintext[ex_p_box[i][j]-1];
-    cout<<"In expansion p box"<<endl;
+    /*cout<<"In expansion p box"<<endl;
     for(int i=0;i<48;i++)
         cout<<pt[i];
-    cout<<endl;
+    cout<<endl;*/
     return pt;
 }
 //xor operation of n bits
@@ -166,26 +166,26 @@ int* func(int* pt, int* key)
 {
     int *plaintext=new int[48];
     plaintext=expansion_p_box(pt);
-    cout<<"Expansion p box applied"<<endl;
+    /*cout<<"Expansion p box applied"<<endl;
     for(int i=0;i<48;i++)
         cout<<plaintext[i];
     cout<<"key before xor"<<endl;
     for(int i=0;i<48;i++)
         cout<<key[i];
-    cout<<endl;
+    cout<<endl;*/
     plaintext=xor_op(plaintext, key, 48);
-    cout<<"xor applied"<<endl;
+    /*cout<<"xor applied"<<endl;
     for(int i=0;i<48;i++)
-        cout<<plaintext[i];
+        cout<<plaintext[i];*/
     int * plain=new int[32];
     plain=s_box(plaintext);
-    cout<<"s box"<<endl;
+    /*cout<<"s box"<<endl;
     for(int i=0;i<32;i++)
-        cout<<plain[i];
+        cout<<plain[i];*/
     plain=straight_p_box(plain);
-    cout<<"straight p box"<<endl;
+    /*cout<<"straight p box"<<endl;
     for(int i=0;i<32;i++)
-        cout<<plain[i];
+        cout<<plain[i];*/
     delete[] plaintext;
     return plain;
 }
@@ -193,19 +193,19 @@ int* func(int* pt, int* key)
 int* round(int* l, int *r, int* key)
 {
     r=func(r, key);
-    cout<<"func applied"<<endl;
+    /*cout<<"func applied"<<endl;
     cout<<"l r before xor"<<endl;
     for(int i=0;i<32;i++)
         cout<<l[i];
     cout<<endl;
     for(int i=0;i<32;i++)
         cout<<r[i];
-    cout<<endl;
+    cout<<endl;*/
     l=xor_op(l, r, 32);
-    cout<<"xor applied"<<endl;
+    /*cout<<"xor applied"<<endl;
         for(int i=0;i<32;i++)
             cout<<l[i];
-        cout<<endl;
+        cout<<endl;*/
     return l;
 }
 
@@ -253,6 +253,10 @@ int* paritydrop(int* cipherkey)  {    //converts the 64 bits to 56 bits by dropp
 int * encrypt(int* plaintext, int *key)
 {
     plaintext=initial_permutation(plaintext);
+    /*cout<<"initial permutation "<<endl;
+        for(int i=0;i<64;i++)
+            cout<<plaintext[i];
+        cout<<endl;*/
     for(int j=0;j<16;j++)
     {
         int* l = new int[32];
@@ -265,11 +269,10 @@ int * encrypt(int* plaintext, int *key)
             r[i]=plaintext[i+32];
             p[i]=plaintext[i+32];
         }
-        cout<<endl;
-        cout<<"plaintext before round"<<endl;
+        /*cout<<"plaintext before round"<<endl;
         for(int i=0;i<64;i++)
             cout<<plaintext[i];
-        cout<<endl;
+        cout<<endl;*/
         l=round(l, r, key);
         for(int i=0;i<32;i++)
             p[i+32]=l[i];
@@ -284,11 +287,19 @@ int * encrypt(int* plaintext, int *key)
         delete[] p;
     }
     plaintext=final_permutation(plaintext);
+    /*cout<<"final permutation "<<endl;
+        for(int i=0;i<64;i++)
+            cout<<plaintext[i];
+        cout<<endl;*/
     return plaintext;
 }
 int * decrypt(int* plaintext, int *key)
 {
     plaintext=initial_permutation(plaintext);
+    /*cout<<"initial permutation "<<endl;
+        for(int i=0;i<64;i++)
+            cout<<plaintext[i];
+        cout<<endl;*/
     for(int j=0;j<16;j++)
     {
         int* l = new int[32];
@@ -304,15 +315,21 @@ int * decrypt(int* plaintext, int *key)
         r=round(r, l, key);
         for(int i=0;i<32;i++)
             p[i]=r[i];
-        plaintext=p;
+        for(int i=0;i<64;i++)
+            plaintext[i]=p[i];
         cout<<"decrypt round "<<j<<endl;
         for(int i=0;i<64;i++)
             cout<<plaintext[i];
+        cout<<endl;
         delete[] l;
         delete[] r;
         delete[] p;
     }
     plaintext=final_permutation(plaintext);
+    /*cout<<"final permutation "<<endl;
+        for(int i=0;i<64;i++)
+            cout<<plaintext[i];
+        cout<<endl;*/
     return plaintext;
 
 }
@@ -369,14 +386,13 @@ int main()  {
   cout<<endl;*/
   int *ct=new int [64];
   ct=encrypt(pt, k);
-  cout<<"Ciphertext after 1 round:"<<endl;
-  for(int i=0; i<64;i++)
+  cout<<"Encrypted text:"<<endl;
+  for(int i=0;i<64;i++)
     cout<<ct[i];
-  cout<<endl;
   int *d=new int [64];
   d=decrypt(ct, pk);
-  cout<<"decrypt after 1 round:"<<endl;
-  for(int i=0; i<64;i++)
+    cout<<"\nDecrypted text:"<<endl;
+  for(int i=0;i<64;i++)
     cout<<d[i];
   cout<<endl;
 
