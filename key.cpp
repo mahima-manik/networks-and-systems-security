@@ -31,6 +31,7 @@ int* compress_permute(int n, int n1, int* pk)  {
   return round_pk;
 }
 
+//Parity drop also takes place in this
 int* permute_key(int* pk) {
   int* per_pk = new int[56];
   int k=0;
@@ -84,6 +85,7 @@ int* shift_by_one(int* pk, int start, int finish)  {
 
   return pk;
 }
+
 int* circular_left_shift (int* pk, int start, int finish, int round) {
   if(round==1 || round == 2 || round==9 || round==16) { //1 bit shift
     return shift_by_one(pk, start, finish);
