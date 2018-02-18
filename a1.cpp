@@ -2,6 +2,12 @@
 #include <bitset>
 #include <iostream>
 using namespace std;
+int tl[17][32];
+int tr[17][32];
+int tk[16][48];
+int tld[17][32];
+int trd[17][32];
+int tkd[16][48];
 //parity drop
 int parity_drop[7][8] = {{57, 49, 41, 33, 25, 17, 9, 1},
     {58, 50, 42, 34, 26, 18, 10, 2},
@@ -331,6 +337,16 @@ int* round_key_generator(int round, int* pk, int m)        //
     pk = circular_shift(pk, mid, n-1, round, m);
     return pk;
 }
+void bin2hex(int* a, int n)
+{
+    int in=0;
+    for (int i=0;i<n;i+=4)
+    {
+        in=a[i]*8+a[i+1]*4+a[i+2]*2+a[i+3];
+        cout<<std::hex<<in;
+    }
+    cout<<" ";
+}
 //encryption algo
 int * encrypt(int* plaintext, int *key1)
 {
@@ -340,6 +356,8 @@ int * encrypt(int* plaintext, int *key1)
         key1 = round_key_generator(j+1, key1, 0);//circular shift
         int* key = new int[48];
         key= compress_permute(56, 48, key1);//compress p box on key
+        for(int i=0;i<48;i++)
+            tk[j][i]=key[i];
         int* l = new int[32];
         int* r = new int[32];
         int* p = new int[64];
@@ -353,15 +371,23 @@ int * encrypt(int* plaintext, int *key1)
         l=round(l, r, key);
         for(int i=0; i<32; i++)
             p[i+32]=l[i];
+
         for(int i=0; i<64; i++)
             plaintext[i]=p[i];
-        cout<<"ciphertext of round "<<j<<endl;
+        /*cout<<"ciphertext of round "<<j<<endl;
         for(int i=0; i<64; i++)
             if(i%4==0 && i!=0)
                 cout<<" "<<plaintext[i];
             else
                 cout<<plaintext[i];
-        cout<<endl;
+        cout<<endl;*/
+        for(int i=0;i<32;i++)
+        {
+            tl[j][i]=plaintext[i];
+            tr[j][i]=plaintext[i+32];
+        }
+        //bin2hex(plaintext, 64);
+        //cout<<endl;
         delete[] l;
         delete[] r;
         delete[] p;
@@ -377,6 +403,11 @@ int * encrypt(int* plaintext, int *key1)
     for(int i=0; i<64; i++)
         plaintext[i]=p[i];
     plaintext=final_permutation(plaintext);
+    for(int i=0;i<32;i++)
+        {
+            tl[16][i]=plaintext[i];
+            tr[16][i]=plaintext[i+32];
+        }
     return plaintext;
 }
 //decryption algo
@@ -389,6 +420,8 @@ int * decrypt(int* plaintext, int *key1)
         int* key = new int[48];
         key= compress_permute(56, 48, key1);//compression p box on key
         key1 = round_key_generator(j+1, key1, 1);//circular shift
+        for(int i=0;i<48;i++)
+            tkd[j][i]=key[i];
         int* l = new int[32];
         int* r = new int[32];
         int* p = new int[64];
@@ -404,13 +437,18 @@ int * decrypt(int* plaintext, int *key1)
             p[i+32]=l[i];
         for(int i=0; i<64; i++)
             plaintext[i]=p[i];
-        cout<<"decrypt round "<<j<<endl;
+        /*cout<<"decrypt round "<<j<<endl;
         for(int i=0; i<64; i++)
             if(i%4==0 && i!=0)
                 cout<<" "<<plaintext[i];
             else
                 cout<<plaintext[i];
-        cout<<endl;
+        cout<<endl;*/
+        for(int i=0;i<32;i++)
+        {
+            tld[j][i]=plaintext[i];
+            trd[j][i]=plaintext[i+32];
+        }
         delete[] l;
         delete[] r;
         delete[] p;
@@ -426,8 +464,14 @@ int * decrypt(int* plaintext, int *key1)
     for(int i=0; i<64; i++)
         plaintext[i]=p[i];
     plaintext=final_permutation(plaintext);
+    for(int i=0;i<32;i++)
+        {
+            tld[16][i]=plaintext[i];
+            trd[16][i]=plaintext[i+32];
+        }
     return plaintext;
 }
+
 int main()
 {
     string cipherkey, plaintext;
@@ -444,34 +488,55 @@ int main()
     int* ck = convert2bit(cipherkey);
     int* pt = convert2bit(plaintext);
 
-    cout<<"Key in the bit string format."<<endl;
+    /*cout<<"Key in the bit string format."<<endl;
     for(int i=0; i<64; i++)
         cout<<ck[i];
     cout<<endl;
     cout<<"Plaintext in the bit string format."<<endl;
     for(int i=0; i<64; i++)
         cout<<pt[i];
-    cout<<endl;
+    cout<<endl;*/
 
 
     int* pk = permute_key(ck);//56bit
     int *ct=new int [64];
     ct=encrypt(pt, pk);
-    cout<<"Encrypted text:"<<endl;
+    /*cout<<"Encrypted text:"<<endl;
     for(int i=0; i<64; i++)
         if(i%4==0 && i!=0)
             cout<<" "<<ct[i];
         else
             cout<<ct[i];
-    cout<<endl;
+    cout<<endl;*/
     int *d=new int [64];
     d=decrypt(ct, pk);
-    cout<<"\nDecrypted text:"<<endl;
+    /*cout<<"\nDecrypted text:"<<endl;
     for(int i=0; i<64; i++)
         if(i%4==0 && i!=0)
             cout<<" "<<d[i];
         else
             cout<<d[i];
+    cout<<endl;*/
+    cout<<"plaintext: ";
+    bin2hex(pt, 64);
     cout<<endl;
+    for(int i=0;i<16;i++)
+    {
+        cout<<"round "<<std::dec<<i+1<<" ";
+        bin2hex(tl[i], 32);
+        bin2hex(tr[i], 32);
+        bin2hex(tk[i], 48);
+        cout<<" | ";
+        bin2hex(tld[i], 32);
+        bin2hex(trd[i], 32);
+        bin2hex(tkd[i], 48);
+        cout<<endl;
+    }
+    cout<<"Cipher Text: ";
+    bin2hex(tl[16], 32);
+    bin2hex(tr[16], 32);
+    cout<<"\tDecrypted Text: ";
+    bin2hex(tld[16], 32);
+    bin2hex(trd[16], 32);
     return 0;
 }
