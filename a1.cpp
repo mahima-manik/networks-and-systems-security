@@ -8,6 +8,7 @@ int tk[16][48];
 int tld[17][32];
 int trd[17][32];
 int tkd[16][48];
+
 //parity drop
 int parity_drop[7][8] = {{57, 49, 41, 33, 25, 17, 9, 1},
     {58, 50, 42, 34, 26, 18, 10, 2},
@@ -236,20 +237,13 @@ int* convert2bit(string myString)
 string checkKeySize(string key)
 {
     string res="";
-    if (key.length() < 8)
+    for (int i=0; i<8; i++)
     {
-        cout<<"NOT SUFFICIENTLY LONG\n";
-        return "\0";
+        res += key[i];
     }
-    else
-    {
-        for (int i=0; i<8; i++)
-        {
-            res += key[i];
-        }
-        return res;
-    }
+    return res;
 }
+
 //Parity drop also takes place in this
 int* permute_key(int* pk)
 {
@@ -374,20 +368,11 @@ int * encrypt(int* plaintext, int *key1)
 
         for(int i=0; i<64; i++)
             plaintext[i]=p[i];
-        /*cout<<"ciphertext of round "<<j<<endl;
-        for(int i=0; i<64; i++)
-            if(i%4==0 && i!=0)
-                cout<<" "<<plaintext[i];
-            else
-                cout<<plaintext[i];
-        cout<<endl;*/
         for(int i=0;i<32;i++)
         {
             tl[j][i]=plaintext[i];
             tr[j][i]=plaintext[i+32];
         }
-        //bin2hex(plaintext, 64);
-        //cout<<endl;
         delete[] l;
         delete[] r;
         delete[] p;
@@ -418,8 +403,8 @@ int * decrypt(int* plaintext, int *key1)
     {
 
         int* key = new int[48];
-        key= compress_permute(56, 48, key1);//compression p box on key
-        key1 = round_key_generator(j+1, key1, 1);//circular shift
+        key= compress_permute(56, 48, key1);            //compression p box on key
+        key1 = round_key_generator(j+1, key1, 1);       //circular shift
         for(int i=0;i<48;i++)
             tkd[j][i]=key[i];
         int* l = new int[32];
@@ -437,13 +422,6 @@ int * decrypt(int* plaintext, int *key1)
             p[i+32]=l[i];
         for(int i=0; i<64; i++)
             plaintext[i]=p[i];
-        /*cout<<"decrypt round "<<j<<endl;
-        for(int i=0; i<64; i++)
-            if(i%4==0 && i!=0)
-                cout<<" "<<plaintext[i];
-            else
-                cout<<plaintext[i];
-        cout<<endl;*/
         for(int i=0;i<32;i++)
         {
             tld[j][i]=plaintext[i];
@@ -477,8 +455,18 @@ int main()
     string cipherkey, plaintext;
     cout<<"Enter 64 bits/8 characters plaintext ";
     cin>>plaintext;
+    while (plaintext.length() < 8)
+    {
+        cout<<"\nPlease enter at least 8 characters: ";
+        cin>>plaintext;
+    }
     cout<<"Enter 64 bits/8 characters cipher key ";
     cin>>cipherkey;
+    while (cipherkey.length() < 8)
+    {
+        cout<<"\nPlease enter at least 8 characters: ";
+        cin>>cipherkey;
+    }
     cipherkey = checkKeySize(cipherkey);
     plaintext = checkKeySize(plaintext);
     if(cipherkey=="\0" || plaintext=="\0")
@@ -488,35 +476,13 @@ int main()
     int* ck = convert2bit(cipherkey);
     int* pt = convert2bit(plaintext);
 
-    /*cout<<"Key in the bit string format."<<endl;
-    for(int i=0; i<64; i++)
-        cout<<ck[i];
-    cout<<endl;
-    cout<<"Plaintext in the bit string format."<<endl;
-    for(int i=0; i<64; i++)
-        cout<<pt[i];
-    cout<<endl;*/
-
-
     int* pk = permute_key(ck);//56bit
     int *ct=new int [64];
     ct=encrypt(pt, pk);
-    /*cout<<"Encrypted text:"<<endl;
-    for(int i=0; i<64; i++)
-        if(i%4==0 && i!=0)
-            cout<<" "<<ct[i];
-        else
-            cout<<ct[i];
-    cout<<endl;*/
+    
     int *d=new int [64];
     d=decrypt(ct, pk);
-    /*cout<<"\nDecrypted text:"<<endl;
-    for(int i=0; i<64; i++)
-        if(i%4==0 && i!=0)
-            cout<<" "<<d[i];
-        else
-            cout<<d[i];
-    cout<<endl;*/
+    
     cout<<"plaintext: ";
     bin2hex(pt, 64);
     cout<<endl;
