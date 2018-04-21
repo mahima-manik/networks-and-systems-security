@@ -5,54 +5,38 @@ import Crypto.PublicKey.DSA as DSA
 import Crypto.PublicKey.ElGamal as ElGamal
 import Crypto.Util.number as CUN
 from Crypto.Cipher import DES
-import ast
+import ast, time
 
 
-gmt_server_ip = ""
-gmt_server_port = 65140
+pkda_server_ip = "127.0.0.1"
+pkda_server_port = 65000
 client_port = 65135
-des = DES.new('01234567', DES.MODE_ECB)
+masterkey = DES.new('mclient1', DES.MODE_ECB)
+privatekey, public_key=0, 1
 
 '''
-flag = 0 if we want to connect to GMT server
-flag = 1 if we want to send doc to amother client 
+flag = 0 if we want to request PKDA for session key
+flag = 1 if we want to send public key to PKDA
 '''
-def tcpclienthandler(serverip , serverport , hashed_doc, flag):
+def tcpclienthandler(serverip , serverport , message, flag):
     
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((serverip, serverport))
-    
-    if flag == 0:
-        gmt_public_key = s.recv(1024)
-        s.send(hashed_doc) 				#sending the amount to receiver/witness
-        gmt_recvd_msg = None
-        
-        while (gmt_recvd_msg == None):
-            gmt_recvd_msg = s.recv(1024)
-        
-        gmt_recvd_msg = ast.literal_eval(gmt_recvd_msg)
-        signed_doc = gmt_recvd_msg[0]
-        gmt_time = gmt_recvd_msg[1]
-        print "Timestamp from the server: ", gmt_time
-        
-        return (signed_doc, gmt_time, gmt_public_key)
-    elif flag == 1:
-        s.send(str(hashed_doc))
-        print s.recv(64)
-        #s.send(hashed_doc[1])
-    
-    s.close()
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	s.connect((serverip, serverport))
+	print(msg, type(msg))
+	if flag == 0:
+		s.send(message)
+		return s.recv(64)
+	if flag==1:
+		s.send(message)
+	s.close()
 
-filename = sys.argv[1]
-text_doc = open(filename).read()
+t1=time.time()
+msg=str(["client1","session_key",t1])
+msg1 = tcpclienthandler(pkda_server_ip, pkda_server_port, msg, 0)#msg1 to PKDA
+msg1=ast.literal_eval(msg1)#msg1=[E(session key, ID PKDA), T1]
+if msg1[1]==t1:
+	txt = masterkey.decrypt(msg1[0])#decrypting with master key txt=[session key, ID PKDA]
+	session_key=txt[0]
+msg2=str(["client1", "public key", session_key.encrypt(public_key)])
+tcpclienthandler(pkda_server_ip, pkda_server_port, msg2, 1)
 
-hd=MD5.new(text_doc).digest()
-(signed_doc, gmt_time, gmt_public_key) = tcpclienthandler(gmt_server_ip, gmt_server_port, hd, 0)
-
-text = str ([text_doc, gmt_time, signed_doc]) #document, time, sign
-if ( len(text)%8 != 0 ):	#padding
-    while( len(text) % 8 != 0):
-        text += '0'
-
-cipher_text = des.encrypt(text)
-tcpclienthandler(gmt_server_ip, client_port, cipher_text, 1)
