@@ -16,40 +16,30 @@ get_server_port = 65140
 key = RSA.generate(1024, os.urandom)    
 pubkey = key.publickey()
 str_pubkey = pubkey.exportKey("DER")
-
-def time_stamp_doc(hashed_doc):
-    global key
-    st = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-
-    hash_ds = MD5.new(hashed_doc+st).digest()
-
-	# sign the hash
-    K = ''
-    signature = key.sign(hash_ds, K)
-    print "Timestamp:", st
-
-    return str(signature), st
+master_key_pkda = "masterpk"
+master_key_c1 = "masterc1"
+master_key_c2 = "masterc2"
 
 def tcpservercode():
         global str_pubkey
     	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind((gmt_server_ip, get_server_port))
         s.listen(5)
-        print '******--GMT Date/Time Server started--******'
+        print '******--KDC Service started--******'
         clientsock = None
         
         while True:
             clientsock, addr = s.accept()
             clientsock.send(str_pubkey)
-            hashed_doc = clientsock.recv(1024)
+            client_id = clientsock.recv(1024)
             
-            if clientsock != None and hashed_doc != "Pub key rcvd":
-                info_list = []
-                print "Cient request received, ", 
-                signed_doc, gmttime = time_stamp_doc(hashed_doc)
-                info_list.append(signed_doc)
-                info_list.append(gmttime)
-                clientsock.send(str(info_list))
+            if clientsock != None:
+                #info_list = []
+                print "Cient request received, ",
+                des = DES.new('masterpk', DES.MODE_ECB)
+                #info_list.append(signed_doc)
+                #info_list.append(gmttime)
+                clientsock.send(str(des))
                 clientsock.close()
                 clientsock = None
                 info_list = []

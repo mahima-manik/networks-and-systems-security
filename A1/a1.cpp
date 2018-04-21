@@ -354,7 +354,7 @@ int * encrypt(int* plaintext, int *key1)
             tk[j][i]=key[i];
         int* l = new int[32];
         int* r = new int[32];
-        int* p = new int[64];
+        int* p = new int[64];       //stores the result
         for(int i=0; i<32; i++)
             l[i]=plaintext[i];
         for(int i=0; i<32; i++)
@@ -476,7 +476,7 @@ int main()
     int* ck = convert2bit(cipherkey);
     int* pt = convert2bit(plaintext);
 
-    int* pk = permute_key(ck);//56bit
+    int* pk = permute_key(ck);  //56bit
     int *ct=new int [64];
     ct=encrypt(pt, pk);
     
